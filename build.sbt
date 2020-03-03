@@ -1,6 +1,6 @@
 name := "sensorStatistics"
 
-version := "0.1"
+version := "1"
 
 scalaVersion := "2.12.8"
 
@@ -22,4 +22,6 @@ libraryDependencies ++= Seq(
   "org.typelevel" %% "cats-effect" % "2.1.1",
   "co.fs2" %% "fs2-core" % "2.2.1",
   "co.fs2" %% "fs2-io" % "2.2.2",
+
+  "org.scalatest" %% "scalatest" % "3.1.1" % Test
 )

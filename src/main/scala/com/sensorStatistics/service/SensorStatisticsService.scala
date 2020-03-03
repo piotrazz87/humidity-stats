@@ -3,20 +3,19 @@ package com.sensorStatistics.service
 import java.nio.file.Path
 
 import cats.effect.IO
-import com.sensorStatistics.domain.{DailyMeasurementsReads, DailySensorStatisticsResult}
+import com.sensorStatistics.domain.{SensorMeasurementsReadings, SensorStatisticsResult}
 
-class SensorStatisticsService(measurementsReader: Path => IO[DailyMeasurementsReads]) {
+class SensorStatisticsService(readMeasurements: Path => IO[SensorMeasurementsReadings]) {
 
-  def calculateStatistics(
-      reportDirectory: Path
-  ): IO[DailySensorStatisticsResult] =
+  def calculateStatistics(reportDirectory: Path): IO[SensorStatisticsResult] =
     for {
-      measurements <- measurementsReader(reportDirectory)
+      measurements: SensorMeasurementsReadings <- readMeasurements(reportDirectory)
       statistics <- generateResults(measurements)
     } yield statistics
 
-  private def generateResults(dailyMeasurements: DailyMeasurementsReads): IO[DailySensorStatisticsResult] =
-    dailyMeasurements.measurements.compile
-      .fold(DailySensorStatisticsAccumulator.empty)(_ processLine _)
+  private def generateResults(dailyMeasurements: SensorMeasurementsReadings): IO[SensorStatisticsResult] =
+    dailyMeasurements.measurements
+      .compile
+      .fold(SensorStatisticsAccumulator.empty)(_ processLine _)
       .map(_.asResult(dailyMeasurements.processedFiles))
 }

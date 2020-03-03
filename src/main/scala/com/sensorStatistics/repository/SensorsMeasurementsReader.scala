@@ -5,7 +5,7 @@ import java.nio.file.Path
 import cats.effect.IO
 import com.sensorStatistics.domain.SensorMeasurementsReadings
 
-trait SensorsReportFetcher {
+trait SensorsMeasurementsReader {
 
-  def fetchDailyMeasurements(directory: Path): IO[SensorMeasurementsReadings]
+  def readMeasurementsFrom(directory: Path): IO[SensorMeasurementsReadings]
 }

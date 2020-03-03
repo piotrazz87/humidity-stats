@@ -1,8 +1,8 @@
 package com.sensorStatistics.domain
 
-case class DailySensorStatisticsResult(
+case class SensorStatisticsResult(
     filesProcessed: Int,
-    measurementsProcessed: Int,
-    measurementsFailed: Int,
-    stats: Vector[SensorStatistic]
+    successMeasurements: Int,
+    failedMeasurements: Int,
+    stats: Stream[SensorStatistic]
 )

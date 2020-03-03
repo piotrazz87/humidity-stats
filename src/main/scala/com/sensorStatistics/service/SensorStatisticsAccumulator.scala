@@ -1,59 +1,60 @@
 package com.sensorStatistics.service
 
-import com.sensorStatistics.domain.{DailySensorStatisticsResult, SensorMeasurement, SensorStatistic}
-import com.sensorStatistics.util.MeasurementMapper
+import com.sensorStatistics.domain.{
+  FailureStats,
+  SensorMeasurement,
+  SensorStatistic,
+  SensorStatisticsResult,
+  SuccessStats
+}
+import com.sensorStatistics.util.MeasurementMapper.resolveValue
 
-final class DailySensorStatisticsAccumulator(
-    measurementsProcessed: Int,
-    measurementsFailed: Int,
-    stats: Map[String, SensorStatistic]
-) {
+final class SensorStatisticsAccumulator(success: Int, failed: Int, stats: Map[String, SensorStatistic]) {
 
-  //TODO:refactor
-  def processLine(line: String): DailySensorStatisticsAccumulator = {
+  def processLine(line: String): SensorStatisticsAccumulator = {
     val measurement = readMeasurement(line)
     measurement.humidity
-      .map(humidity => {
-        val updatedSensorStats = stats
-          .get(measurement.id)
-          .map(resolveStats(humidity, _))
-          .getOrElse(resolveStats(humidity, SensorStatistic(measurement.id, None, None, None)))
-
-        new DailySensorStatisticsAccumulator(
-          measurementsProcessed + 1,
-          measurementsFailed,
-          stats.updated(updatedSensorStats.id, updatedSensorStats)
-        )
-      })
-      .getOrElse(
-        new DailySensorStatisticsAccumulator(
-          measurementsProcessed,
-          measurementsFailed + 1,
-          stats.get(measurement.id) match {
-            case None    => stats.updated(measurement.id, SensorStatistic(measurement.id, None, None, None))
-            case Some(_) => stats
-          }
-        )
-      )
+      .map { humidity =>
+        val updatedSensorStats = resolveStatsToUpdate(humidity, measurement.sensorId)
+        new SensorStatisticsAccumulator(success + 1, failed, stats.updated(measurement.sensorId, updatedSensorStats))
+      }
+      .getOrElse(new SensorStatisticsAccumulator(success, failed + 1, resolveStatsToUpdate(measurement.sensorId)))
   }
 
-  def asResult(filesProcessed: Int): DailySensorStatisticsResult =
-    DailySensorStatisticsResult(filesProcessed, measurementsProcessed, measurementsFailed, stats.values.toVector.sorted)
+  def asResult(filesProcessed: Int): SensorStatisticsResult =
+    SensorStatisticsResult(filesProcessed, success, failed, stats.values.toStream.sorted)
 
   private def readMeasurement(line: String): SensorMeasurement = {
     val Array(sensorId, measurement) = line.trim.split(",")
-    SensorMeasurement(sensorId, MeasurementMapper.toOption(measurement))
+    SensorMeasurement(sensorId, resolveValue(measurement))
   }
 
-  private def resolveStats(measurement: Int, sensorStatistic: SensorStatistic): SensorStatistic = {
-    val min = sensorStatistic.min.filter(_ < measurement).orElse(Some(measurement))
-    val max = sensorStatistic.max.filter(_ > measurement).orElse(Some(measurement))
-    val avg = sensorStatistic.avg.map(lastAvg => (lastAvg + measurement) / 2).orElse(Some(measurement))
+  private def resolveStatsToUpdate(sensorId: String): Map[String, SensorStatistic] =
+    stats.get(sensorId) match {
+      case Some(_) => stats
+      case None    => stats.updated(sensorId, FailureStats(sensorId))
+    }
 
-    SensorStatistic(sensorStatistic.id, min, avg, max)
-  }
+  private def resolveStatsToUpdate(humidity: Int, sensorId: String): SuccessStats =
+    calculateSensorStatistics(humidity, sensorId,stats.getOrElse(sensorId, None))
+
+  private def calculateSensorStatistics(
+      measurement: Int,
+      sensorId: String,
+      sensorStatistic: Option[SuccessStats]
+  ): SuccessStats =
+    sensorStatistic
+      .map(stats => {
+        val min = if (stats.min < measurement) stats.min else measurement
+        val max: Int = if (stats.max > measurement) stats.max else measurement
+        val avg: Int = (stats.avg + measurement) / 2
+
+        SuccessStats(stats.sensorId, min, avg, max)
+      })
+      .getOrElse(SuccessStats(sensorId, measurement, measurement, measurement))
+
 }
 
-object DailySensorStatisticsAccumulator {
-  def empty: DailySensorStatisticsAccumulator = new DailySensorStatisticsAccumulator(0, 0, Map())
+object SensorStatisticsAccumulator {
+  def empty: SensorStatisticsAccumulator = new SensorStatisticsAccumulator(0, 0, Map())
 }

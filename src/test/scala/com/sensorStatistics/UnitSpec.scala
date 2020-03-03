@@ -1,4 +1,7 @@
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.{GivenWhenThen, TryValues}
+package com.sensorStatistics
 
-trait UnitSpec extends AnyFlatSpec with GivenWhenThen with TryValues
+import org.scalatest.{GivenWhenThen, TryValues}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
+
+trait UnitSpec extends AnyFlatSpec with Matchers with GivenWhenThen with TryValues

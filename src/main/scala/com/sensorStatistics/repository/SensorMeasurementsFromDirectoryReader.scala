@@ -3,24 +3,25 @@ package com.sensorStatistics.repository
 import java.nio.file.Path
 
 import cats.effect.{Blocker, ContextShift, IO}
-import com.sensorStatistics.domain.DailyMeasurementsReads
-import fs2.{Stream, io, text}
+import com.sensorStatistics.domain.SensorMeasurementsReadings
+import fs2.{io, text, Stream}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class SensorMeasurementsFromDirectoryReader(pathsByDirectory: Path => IO[List[Path]]) extends SensorsReportFetcher {
+class SensorMeasurementsFromDirectoryReader(providePathsToCSV: Path => IO[List[Path]])
+    extends SensorsMeasurementsReader {
 
   implicit private val cs: ContextShift[IO] = IO.contextShift(global)
 
-  def fetchDailyMeasurements(directory: Path): IO[DailyMeasurementsReads] =
+  def readMeasurementsFrom(directory: Path): IO[SensorMeasurementsReadings] =
     for {
-      paths <- pathsByDirectory(directory)
-    } yield DailyMeasurementsReads(paths.size, loadMeasurementsFromFiles(paths))
+      paths <- providePathsToCSV(directory)
+    } yield SensorMeasurementsReadings(paths.size, readMeasurements(paths))
 
-  private def loadMeasurementsFromFiles(paths: List[Path]): Stream[IO, String] =
-    paths.map(loadMeasurementsFromFile).reduce(_.merge(_))
+  private def readMeasurements(paths: List[Path]): Stream[IO, String] =
+    paths.map(readMeasurements).reduce(_.merge(_))
 
-  private def loadMeasurementsFromFile(path: Path): Stream[IO, String] =
+  private def readMeasurements(path: Path): Stream[IO, String] =
     Stream
       .resource(Blocker[IO])
       .flatMap { blocker =>
