@@ -24,11 +24,12 @@ final class SensorStatisticsAccumulator(success: Int, failed: Int, stats: Map[St
       .get(sensorId)
       .map {
         case SuccessStats(_, min, avg, max, qty) =>
+          val newMeasurementsQty = qty + 1
           val newMin = if (min < measurement) min else measurement
           val newMax = if (max > measurement) max else measurement
-          val newAvg = (avg * qty + measurement) / (qty + 1)
+          val newAvg = (avg * qty + measurement) / newMeasurementsQty
 
-          SuccessStats(sensorId, newMin, newAvg, newMax, qty + 1)
+          SuccessStats(sensorId, newMin, newAvg, newMax, newMeasurementsQty)
         case FailureStats(_) => SuccessStats(sensorId, measurement, measurement, measurement, 1)
       }
       .getOrElse(SuccessStats(sensorId, measurement, measurement, measurement, 1))
