@@ -18,7 +18,7 @@ class SensorMeasurementsFromDirectoryReaderTest extends UnitSpec {
 
     Then("measurements should be loaded")
     measurements.unsafeRunSync().processedFiles shouldEqual 1
-    measurements.unsafeRunSync().measurements.compile.toList.unsafeRunSync() shouldEqual List("s1,89 ", "s2,43 ")
+    measurements.unsafeRunSync().measurements.compile.toList.unsafeRunSync() should contain only ("s1,89 ", "s2,43 ")
     TestFilesUtil.delete("testCsv.csv")
   }
 
@@ -35,7 +35,7 @@ class SensorMeasurementsFromDirectoryReaderTest extends UnitSpec {
 
     Then("measurements should be loaded")
     measurements.unsafeRunSync().processedFiles shouldEqual 2
-    measurements.unsafeRunSync().measurements.compile.toList.unsafeRunSync() shouldEqual List(
+    measurements.unsafeRunSync().measurements.compile.toList.unsafeRunSync() should contain only (
       "s1,89 ",
       "s2,43 ",
       "s6,21 ",
