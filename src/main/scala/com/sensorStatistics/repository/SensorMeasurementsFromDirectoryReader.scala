@@ -31,5 +31,6 @@ class SensorMeasurementsFromDirectoryReader(providePathsToCSV: Path => IO[List[P
           .through(text.lines)
           .tail
           .filter(_.nonEmpty)
+
       }
 }
