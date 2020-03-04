@@ -18,7 +18,7 @@ The measurements for the same sensor id can be in the different files
 # Few notes
 
 1. Program will work more efficiently if each stream will be processed parallel.
-2. Need to add some exception handlin.
+2. Need to add some exception handling.
 
 
 
