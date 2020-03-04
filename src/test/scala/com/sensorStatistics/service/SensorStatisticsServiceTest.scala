@@ -58,7 +58,7 @@ class SensorStatisticsServiceTest extends UnitSpec {
     )
   }
 
-  "service" should "provide statistics for many sensors with mixed measurements " in {
+  "service" should "provide ordered statistics for many sensors with mixed measurements " in {
     Given("path and readings")
 
     val readings = SensorMeasurementsReadings(
@@ -76,7 +76,10 @@ class SensorStatisticsServiceTest extends UnitSpec {
         "s3,99",
         "s4,NaN",
         "s4,NaN",
-        "s4,NaN"
+        "s4,NaN",
+        "s5,NaN",
+        "s5,NaN",
+        "s5,NaN"
       )
     )
 
@@ -89,12 +92,13 @@ class SensorStatisticsServiceTest extends UnitSpec {
     val stats = result.unsafeRunSync()
     stats.filesProcessed shouldEqual 10
     stats.successMeasurements shouldEqual 6
-    stats.failedMeasurements shouldEqual 7
-    stats.sensorsStats should contain only (
-      SensorSuccessStatistic("s1", 0, 3, 6, 2),
+    stats.failedMeasurements shouldEqual 10
+    stats.sensorsStats should contain inOrderOnly (
       SensorSuccessStatistic("s2", 45, 66, 87, 2),
       SensorSuccessStatistic("s3", 1, 50, 99, 2),
-      SensorFailureStatistic("s4")
+      SensorSuccessStatistic("s1", 0, 3, 6, 2),
+      SensorFailureStatistic("s4"),
+      SensorFailureStatistic("s5")
     )
   }
 }
