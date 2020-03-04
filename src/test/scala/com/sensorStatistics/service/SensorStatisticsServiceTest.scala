@@ -4,7 +4,7 @@ import java.nio.file.Paths
 
 import cats.effect.IO
 import com.sensorStatistics.UnitSpec
-import com.sensorStatistics.domain.{FailureStats, SensorMeasurementsReadings, SensorsStatisticsResult, SuccessStats}
+import com.sensorStatistics.domain.{SensorFailureStatistic, SensorMeasurementsReadings, SensorsStatisticsResult, SensorSuccessStatistic}
 
 class SensorStatisticsServiceTest extends UnitSpec {
 
@@ -21,7 +21,7 @@ class SensorStatisticsServiceTest extends UnitSpec {
     val result = service.calculateStatistics(path)
 
     Then("result should equal")
-    result.unsafeRunSync() shouldEqual SensorsStatisticsResult(10, 3, 0, Stream(SuccessStats("s2", 0, 62, 99, 3)))
+    result.unsafeRunSync() shouldEqual SensorsStatisticsResult(10, 3, 0, Stream(SensorSuccessStatistic("s2", 0, 62, 99, 3)))
   }
 
   "service" should "provide statistics for sensor with failed measurements " in {
@@ -35,7 +35,7 @@ class SensorStatisticsServiceTest extends UnitSpec {
     val result = service.calculateStatistics(path)
 
     Then("result should equal")
-    result.unsafeRunSync() shouldEqual SensorsStatisticsResult(10, 0, 3, Stream(FailureStats("s2")))
+    result.unsafeRunSync() shouldEqual SensorsStatisticsResult(10, 0, 3, Stream(SensorFailureStatistic("s2")))
   }
 
   "service" should "provide statistics for sensor with mixed measurements " in {
@@ -49,7 +49,7 @@ class SensorStatisticsServiceTest extends UnitSpec {
     val result = service.calculateStatistics(path)
 
     Then("result should equal")
-    result.unsafeRunSync() shouldEqual SensorsStatisticsResult(10, 2, 3, Stream(SuccessStats("s2", 45, 66, 87, 2)))
+    result.unsafeRunSync() shouldEqual SensorsStatisticsResult(10, 2, 3, Stream(SensorSuccessStatistic("s2", 45, 66, 87, 2)))
   }
 
   "service" should "provide statistics for many sensors with mixed measurements " in {
@@ -85,10 +85,10 @@ class SensorStatisticsServiceTest extends UnitSpec {
       6,
       7,
       Stream(
-        SuccessStats("s1", 0, 3, 6, 2),
-        SuccessStats("s2", 45, 66, 87, 2),
-        SuccessStats("s3", 1, 50, 99, 2),
-        FailureStats("s4")
+        SensorSuccessStatistic("s1", 0, 3, 6, 2),
+        SensorSuccessStatistic("s2", 45, 66, 87, 2),
+        SensorSuccessStatistic("s3", 1, 50, 99, 2),
+        SensorFailureStatistic("s4")
       )
     )
   }

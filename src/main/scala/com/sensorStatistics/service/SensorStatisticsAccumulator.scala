@@ -1,6 +1,11 @@
 package com.sensorStatistics.service
 
-import com.sensorStatistics.domain.{FailureStats, SensorStatistic, SensorsStatisticsResult, SuccessStats}
+import com.sensorStatistics.domain.{
+  SensorFailureStatistic,
+  SensorStatistic,
+  SensorSuccessStatistic,
+  SensorsStatisticsResult
+}
 import com.sensorStatistics.util.HumidityResolver.resolveHumidity
 
 final class SensorStatisticsAccumulator(success: Int, failed: Int, stats: Map[String, SensorStatistic]) {
@@ -19,25 +24,25 @@ final class SensorStatisticsAccumulator(success: Int, failed: Int, stats: Map[St
   def asResult(filesProcessed: Int): SensorsStatisticsResult =
     SensorsStatisticsResult(filesProcessed, success, failed, stats.toStream.map(_._2).sorted)
 
-  private def resolveSuccessStatsToUpdate(measurement: Int, sensorId: String): SuccessStats =
+  private def resolveSuccessStatsToUpdate(measurement: Int, sensorId: String): SensorSuccessStatistic =
     stats
       .get(sensorId)
       .map {
-        case SuccessStats(_, min, avg, max, qty) =>
+        case SensorSuccessStatistic(_, min, avg, max, qty) =>
           val newMeasurementsQty = qty + 1
           val newMin = if (min < measurement) min else measurement
           val newMax = if (max > measurement) max else measurement
           val newAvg = (avg * qty + measurement) / newMeasurementsQty
 
-          SuccessStats(sensorId, newMin, newAvg, newMax, newMeasurementsQty)
-        case FailureStats(_) => SuccessStats(sensorId, measurement, measurement, measurement, 1)
+          SensorSuccessStatistic(sensorId, newMin, newAvg, newMax, newMeasurementsQty)
+        case SensorFailureStatistic(_) => SensorSuccessStatistic(sensorId, measurement, measurement, measurement, 1)
       }
-      .getOrElse(SuccessStats(sensorId, measurement, measurement, measurement, 1))
+      .getOrElse(SensorSuccessStatistic(sensorId, measurement, measurement, measurement, 1))
 
   private def resolveUpdatedStatsWithFailure(sensorId: String): Map[String, SensorStatistic] =
     stats.get(sensorId) match {
       case Some(_) => stats
-      case None    => stats.updated(sensorId, FailureStats(sensorId))
+      case None    => stats.updated(sensorId, SensorFailureStatistic(sensorId))
     }
 }
 
