@@ -1,24 +1,22 @@
 package com.sensorStatistics.domain
 
-import com.sensorStatistics.util.MeasurementMapper.fromOption
-
-case class SensorStatistic(id: String, min: Option[Int], avg: Option[Int], max: Option[Int])
-    extends Ordered[SensorStatistic] {
-
-  override def toString: String = s"$id, ${fromOption(min)}, ${fromOption(avg)}, ${fromOption(max)}"
-
-  override def compare(that: SensorStatistic): Int =
-    if (this.avg.getOrElse(0) < that.avg.getOrElse(0)) 1
-    else if (this.avg.getOrElse(0) > that.avg.getOrElse(0))
-      -1
-    else 0
+sealed trait SensorStatistic {
+  def sensorId: String
+  def avgHumidity: Option[Double]
 }
-trait SensorStats{
-  def sensorId:String
+
+final case class FailureStats(sensorId: String) extends SensorStatistic {
+  override def toString: String = s"$sensorId, NaN, NaN, NaN"
+  override def avgHumidity: Option[Double] = None
 }
-case class FailureStats(sensorId:String)
-case class SuccessStats(sensorId:String,min:Int,avg:Int,max:Int)
+
+final case class SuccessStats(sensorId: String, min: Int, avg: Double, max: Int, qtyProcessed: Int)
+    extends SensorStatistic {
+  override def toString: String = s"$sensorId, $min, ${avg.toInt}, $max"
+  override def avgHumidity: Option[Double] = Some(avg)
+}
 
 object SensorStatistic {
-  def empty(sensorId: String) = SensorStatistic(sensorId, None, None, None)
+  val ordering: Ordering[SensorStatistic] = Ordering.by(_.avgHumidity)
+  implicit def orderByReverse: Ordering[SensorStatistic] = ordering.reverse
 }
