@@ -7,14 +7,17 @@ import com.sensorStatistics.{TestFilesUtil, UnitSpec}
 class CSVPathsFromDirectoryProviderTest extends UnitSpec {
 
   "provider" should "provide paths to csvs without other extensions" in {
+    Given("some files in dir")
     Files.createDirectory(Paths.get("testDir"))
     TestFilesUtil.createCSV("testDir/testCsv.csv", Nil)
     TestFilesUtil.createCSV("testDir/testCsv2.csv", Nil)
     TestFilesUtil.createCSV("testDir/testCsv3.csv", Nil)
     TestFilesUtil.createCSV("testDir/testTxt.txt", Nil)
 
+    When("loading paths")
     val provider = new CSVPathsFromDirectoryProvider()
 
+    Then("fetch paths to csvs")
     provider
       .provide(Paths.get("testDir"))
       .unsafeRunSync()
@@ -25,7 +28,7 @@ class CSVPathsFromDirectoryProviderTest extends UnitSpec {
     deleteFiles
   }
 
-  private def deleteFiles = {
+  private def deleteFiles: Unit = {
     TestFilesUtil.delete("testDir/testCsv.csv")
     TestFilesUtil.delete("testDir/testCsv2.csv")
     TestFilesUtil.delete("testDir/testCsv3.csv")
