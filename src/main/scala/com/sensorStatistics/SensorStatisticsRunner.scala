@@ -6,9 +6,8 @@ import cats.effect.{ExitCode, IO, IOApp}
 import cats.implicits._
 import com.sensorStatistics.config.Module
 import com.sensorStatistics.domain.SensorsStatisticsResult
-import com.typesafe.scalalogging.LazyLogging
 
-object SensorStatisticsRunner extends IOApp with LazyLogging {
+object SensorStatisticsRunner extends IOApp {
 
   override def run(args: List[String]): IO[ExitCode] =
     args match {
@@ -35,7 +34,6 @@ object SensorStatisticsRunner extends IOApp with LazyLogging {
       println(s"Measurements processed: ${result.successMeasurements}")
       println(s"Measurements failed ${result.failedMeasurements}")
       println("sensor-id, min, avg, max")
-
       result.sensorsStats.foreach(sensorStatistic => println(sensorStatistic.toString))
     }
 }
