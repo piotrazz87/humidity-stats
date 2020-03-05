@@ -18,6 +18,8 @@ scalacOptions ++= Seq(
   "-Ypartial-unification",
   "-Xfatal-warnings")
 
+fork in run := true
+
 libraryDependencies ++= Seq(
   "org.typelevel" %% "cats-effect" % "2.1.1",
   "co.fs2" %% "fs2-core" % "2.2.1",

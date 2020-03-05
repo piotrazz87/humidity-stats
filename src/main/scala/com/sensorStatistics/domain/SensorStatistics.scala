@@ -17,7 +17,7 @@ final case class BrokenSensorStatistics(sensorId: String) extends SensorStatisti
 
 final case class ProperSensorStatistics(sensorId: String, min: Int, avg: Double, max: Int, qtyProcessed: Int)
     extends SensorStatistics {
-  override def toString: String = s"$sensorId, $min, $avg, $max"
+  override def toString: String = s"$sensorId, $min, ${avg.toInt}, $max"
   override def avgHumidity: Option[Double] = Some(avg)
 }
 
