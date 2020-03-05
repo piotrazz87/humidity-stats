@@ -28,7 +28,7 @@ class CSVPathsFromDirectoryProviderTest extends UnitSpec {
     deleteFiles
   }
 
-  "provider" should "raise error when directory directory not exists" in {
+  "provider" should "raise error when directory does not exist" in {
     new CSVPathsFromDirectoryProvider()
       .provide(Paths.get("fakeDir"))
       .attempt
