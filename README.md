@@ -19,10 +19,3 @@ Format of the file: 1 header line + many lines with measurements
 Measurement line has sensor id and the humidity value
 Humidity value is integer in range [0, 100] or NaN (failed measurement)
 The measurements for the same sensor id can be in the different files
-
-# Few notes
-
-1. Program will work more efficiently if each stream will be processed parallel.
-
-
-
