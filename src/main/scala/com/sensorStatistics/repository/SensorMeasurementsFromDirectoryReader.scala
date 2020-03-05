@@ -4,9 +4,11 @@ import java.nio.file.Path
 
 import cats.effect.{Blocker, ContextShift, IO}
 import com.sensorStatistics.domain.SensorMeasurementsReadings
+import fs2.Stream.raiseError
 import fs2.{io, text, Stream}
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.Try
 
 class SensorMeasurementsFromDirectoryReader(providePathsToCSV: Path => IO[List[Path]])
     extends SensorsMeasurementsReader {
@@ -16,10 +18,11 @@ class SensorMeasurementsFromDirectoryReader(providePathsToCSV: Path => IO[List[P
   def readMeasurementsFrom(directory: Path): IO[SensorMeasurementsReadings] =
     for {
       paths <- providePathsToCSV(directory)
-    } yield SensorMeasurementsReadings(paths.size, readMeasurements(paths))
+      measurements <- readMeasurements(paths)
+    } yield SensorMeasurementsReadings(paths.size, measurements)
 
-  private def readMeasurements(paths: List[Path]): Stream[IO, String] =
-    paths.map(readMeasurements).reduce(_.merge(_))
+  private def readMeasurements(paths: List[Path]): IO[Stream[IO, String]] =
+    IO.fromTry(Try(paths.map(readMeasurements).reduce(_.merge(_))))
 
   private def readMeasurements(path: Path): Stream[IO, String] =
     Stream
@@ -32,4 +35,7 @@ class SensorMeasurementsFromDirectoryReader(providePathsToCSV: Path => IO[List[P
           .tail
           .filter(_.nonEmpty)
       }
+      .handleErrorWith(exception => raiseError[IO](StreamingFileException(exception.getMessage)))
 }
+case class StreamingFileException(message: String)
+    extends RuntimeException(s"There was a problem while processing file: $message")

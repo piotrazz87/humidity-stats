@@ -4,7 +4,7 @@ import java.nio.file.Paths
 
 import cats.effect.IO
 import com.sensorStatistics.UnitSpec
-import com.sensorStatistics.domain.{SensorFailureStatistic, SensorMeasurementsReadings, SensorSuccessStatistic, SensorsStatisticsResult}
+import com.sensorStatistics.domain.{BrokenSensorStatistics, SensorMeasurementsReadings, ProperSensorStatistics, SensorsStatisticsResult}
 
 class SensorStatisticsServiceTest extends UnitSpec {
 
@@ -22,7 +22,7 @@ class SensorStatisticsServiceTest extends UnitSpec {
 
     Then("result should equal")
     result
-      .unsafeRunSync() shouldEqual SensorsStatisticsResult(10, 3, 0, Stream(SensorSuccessStatistic("s2", 0, 62, 99, 3)))
+      .unsafeRunSync() shouldEqual SensorsStatisticsResult(10, 3, 0, Stream(ProperSensorStatistics("s2", 0, 62, 99, 3)))
   }
 
   "service" should "provide statistics for sensor with failed measurements " in {
@@ -36,7 +36,7 @@ class SensorStatisticsServiceTest extends UnitSpec {
     val result = service.calculateStatistics(path)
 
     Then("result should equal")
-    result.unsafeRunSync() shouldEqual SensorsStatisticsResult(10, 0, 3, Stream(SensorFailureStatistic("s2")))
+    result.unsafeRunSync() shouldEqual SensorsStatisticsResult(10, 0, 3, Stream(BrokenSensorStatistics("s2")))
   }
 
   "service" should "provide statistics for sensor with mixed measurements " in {
@@ -54,7 +54,7 @@ class SensorStatisticsServiceTest extends UnitSpec {
       10,
       2,
       3,
-      Stream(SensorSuccessStatistic("s2", 45, 66, 87, 2))
+      Stream(ProperSensorStatistics("s2", 45, 66, 87, 2))
     )
   }
 
@@ -94,11 +94,11 @@ class SensorStatisticsServiceTest extends UnitSpec {
     stats.successMeasurements shouldEqual 6
     stats.failedMeasurements shouldEqual 10
     stats.sensorsStats should contain inOrderOnly (
-      SensorSuccessStatistic("s2", 45, 66, 87, 2),
-      SensorSuccessStatistic("s3", 1, 50, 99, 2),
-      SensorSuccessStatistic("s1", 0, 3, 6, 2),
-      SensorFailureStatistic("s4"),
-      SensorFailureStatistic("s5")
+      ProperSensorStatistics("s2", 45, 66, 87, 2),
+      ProperSensorStatistics("s3", 1, 50, 99, 2),
+      ProperSensorStatistics("s1", 0, 3, 6, 2),
+      BrokenSensorStatistics("s4"),
+      BrokenSensorStatistics("s5")
     )
   }
 }

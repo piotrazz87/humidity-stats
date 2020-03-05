@@ -28,6 +28,13 @@ class CSVPathsFromDirectoryProviderTest extends UnitSpec {
     deleteFiles
   }
 
+  "provider" should "raise error when directory directory not exists" in {
+    new CSVPathsFromDirectoryProvider()
+      .provide(Paths.get("fakeDir"))
+      .attempt
+      .unsafeRunSync() shouldEqual Left(UnableToFetchCSVSFromDirectory("Directory does not exist fakeDir"))
+  }
+
   private def deleteFiles: Unit = {
     TestFilesUtil.delete("testDir/testCsv.csv")
     TestFilesUtil.delete("testDir/testCsv2.csv")

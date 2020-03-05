@@ -1,14 +1,15 @@
 package com.sensorStatistics.service
 
 import com.sensorStatistics.domain.{
-  SensorFailureStatistic,
-  SensorStatistic,
-  SensorSuccessStatistic,
+  BrokenSensorStatistics,
+  ProperSensorStatistics,
+  SensorStatistics,
   SensorsStatisticsResult
 }
+import com.sensorStatistics.service.SensorStatisticsCalculator.recalculateSensorStatistics
 import com.sensorStatistics.util.HumidityResolver.resolveHumidity
 
-final class SensorStatisticsAccumulator(success: Int, failed: Int, stats: Map[String, SensorStatistic]) {
+final class SensorStatisticsAccumulator private (success: Int, failed: Int, stats: Map[String, SensorStatistics]) {
 
   def processLine(line: String): SensorStatisticsAccumulator = {
     val Array(sensorId, measurement) = line.trim.split(",")
@@ -24,25 +25,19 @@ final class SensorStatisticsAccumulator(success: Int, failed: Int, stats: Map[St
   def asResult(filesProcessed: Int): SensorsStatisticsResult =
     SensorsStatisticsResult(filesProcessed, success, failed, stats.toStream.map(_._2).sorted)
 
-  private def resolveSuccessStatsToUpdate(measurement: Int, sensorId: String): SensorSuccessStatistic =
+  private def resolveSuccessStatsToUpdate(measurement: Int, sensorId: String): ProperSensorStatistics =
     stats
       .get(sensorId)
       .map {
-        case SensorSuccessStatistic(_, min, avg, max, qty) =>
-          val newMeasurementsQty = qty + 1
-          val newMin = if (min < measurement) min else measurement
-          val newMax = if (max > measurement) max else measurement
-          val newAvg = (avg * qty + measurement) / newMeasurementsQty
-
-          SensorSuccessStatistic(sensorId, newMin, newAvg, newMax, newMeasurementsQty)
-        case SensorFailureStatistic(_) => SensorSuccessStatistic(sensorId, measurement, measurement, measurement, 1)
+        case currentStatistics: ProperSensorStatistics => recalculateSensorStatistics(currentStatistics, measurement)
+        case _: BrokenSensorStatistics                 => ProperSensorStatistics.initiate(sensorId, measurement)
       }
-      .getOrElse(SensorSuccessStatistic(sensorId, measurement, measurement, measurement, 1))
+      .getOrElse(ProperSensorStatistics.initiate(sensorId, measurement))
 
-  private def resolveUpdatedStatsWithFailure(sensorId: String): Map[String, SensorStatistic] =
+  private def resolveUpdatedStatsWithFailure(sensorId: String): Map[String, SensorStatistics] =
     stats.get(sensorId) match {
       case Some(_) => stats
-      case None    => stats.updated(sensorId, SensorFailureStatistic(sensorId))
+      case None    => stats.updated(sensorId, BrokenSensorStatistics(sensorId))
     }
 }
 

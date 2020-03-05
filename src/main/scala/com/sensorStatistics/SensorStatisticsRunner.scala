@@ -17,8 +17,11 @@ object SensorStatisticsRunner extends IOApp {
         val appModule = new Module
 
         (for {
-          statistics <- appModule.statisticsService.calculateStatistics(Paths.get(directory))
-          _ <- printStats(statistics)
+          statistics <- appModule.statisticsService.calculateStatistics(Paths.get(directory)).attempt
+          _ = statistics match {
+            case Left(error)  => println(s"Unable to process files : ${error.getMessage}")
+            case Right(stats) => printStats(stats)
+          }
         } yield ()).as(ExitCode.Success)
 
       case _ :: _ => IO(println("To many arguments. Please provide only path to directory")).as(ExitCode.Error)

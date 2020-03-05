@@ -45,4 +45,18 @@ class SensorMeasurementsFromDirectoryReaderTest extends UnitSpec {
     TestFilesUtil.delete("testCsv.csv")
     TestFilesUtil.delete("testCsv2.csv")
   }
+
+  "reader" should "raise error when problem with file" in {
+    Given("some files to process")
+
+    val reader = new SensorMeasurementsFromDirectoryReader(_ => IO(List(Paths.get("testCsv.csv"))))
+
+    When("loading measurements")
+    val measurements = reader.readMeasurementsFrom(Paths.get("testCsv.csv"))
+
+    Then("measurements should be loaded")
+    measurements.unsafeRunSync().measurements.compile.toList.attempt.unsafeRunSync() shouldEqual Left(
+      StreamingFileException("testCsv.csv")
+    )
+  }
 }

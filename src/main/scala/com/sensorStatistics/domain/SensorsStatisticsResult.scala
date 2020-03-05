@@ -4,5 +4,5 @@ case class SensorsStatisticsResult(
     filesProcessed: Int,
     successMeasurements: Int,
     failedMeasurements: Int,
-    sensorsStats: Stream[SensorStatistic]
+    sensorsStats: Stream[SensorStatistics]
 )
