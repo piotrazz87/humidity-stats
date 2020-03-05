@@ -37,5 +37,6 @@ class SensorMeasurementsFromDirectoryReader(providePathsToCSV: Path => IO[List[P
       }
       .handleErrorWith(exception => raiseError[IO](StreamingFileException(exception.getMessage)))
 }
+
 case class StreamingFileException(message: String)
     extends RuntimeException(s"There was a problem while processing file: $message")
